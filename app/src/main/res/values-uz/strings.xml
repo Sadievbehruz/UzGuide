@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">UzGuide</string>
+    <string name="no_destinations_found">Hech qanday joy topilmadi 😔</string>
+    <string name="saved_places_title">Saqlangan joylar</string>
+    <string name="no_saved_places">Hozircha saqlangan joylar yoʻq.</string>
+    <string name="get_directions">Yoʻnalish olish</string>
+    <string name="about_title">Ma’lumot</string>
+    <string name="discover_uzbekistan">Oʻzbekistonni kashf eting</string>
+    <string name="best_spots">Siz uchun eng yaxshi joylar</string>
+    <string name="all_destinations">Barcha yoʻnalishlar</string>
+    <string name="top_cities">O‘zbekistonning mashhur shaharlari</string>
+    <string name="home">Asosiy</string>
+    <string name="hotel">Mehmonxona</string>
+    <string name="map">Xarita</string>
+    <string name="market">Market</string>
+    <string name="more">Ko‘proq</string>
+    <string name="welcome_title">Xush kelibsiz!</string>
+    <string name="sign_in_google">Google orqali kirish</string>
+    <string name="welcome">Xush kelibsiz!</string>
+    <string name="app_subtitle">Oʻzbekiston boʻylab sayohat yoʻlkoʻrsatkichi</string>
+    <string name="loading">Yuklanmoqda...</string>
+    <string name="no_detail_info">Batafsil ma’lumot tez orada joylashtiriladi.</string>
+    <string name="label_area">Maydoni</string>
+    <string name="label_weather">Ob-havo</string>
+    <string name="ticket_title">Chipta</string>
+    <string name="desc_not_available">Tavsif mavjud emas.</string>
+    <string name="no_details_available">Batafsil maʼlumot tez kunda taqdim etiladi.</string>
+    <string name="not_applicable">Mavjud emas</string>
+    <string name="free_price">Bepul</string>
+    <string name="change_language">Tilni o\'zgartirish</string>
+
+    <string name="profile_settings">Profil sozlamalari</string>
+    <string name="btn_save">Saqlash</string>
+    <string name="btn_edit">Tahrirlash</string>
+    <string name="label_full_name">Toʻliq ism-sharifingiz</string>
+
+    <string name="menu_vr_mode">VR rejimi</string>
+    <string name="title_national_market">Oʻzbekiston milliy bozori</string>
+    <string name="title_luxury_hotels">Hamyonbop va hashamatli mehmonxonalar</string>
+    <string name="coming_soon">TEZ KUNDA</string>
+
+    <string name="filter_title">Joylarni saralash</string>
+    <string name="filter_clear">Tozalash</string>
+    <string name="select_cities">Shaharlarni tanlang</string>
+    <string name="select_categories">Kategoriyalarni tanlang</string>
+    <string name="btn_apply">Saralashni qoʻllash</string>
+    <string name="btn_cancel">Bekor qilish</string>
+    <string name="city_tashkent">Toshkent</string>
+    <string name="city_samarkand">Samarqand</string>
+    <string name="city_bukhara">Buxoro</string>
+    <string name="city_khiva">Xiva</string>
+    <string name="city_jizzakh">Jizzax</string>
+    <string name="city_bostanlyk">Boʻstonliq</string>
+    <string name="city_shahrisabz">Shahrisabz</string>
+    <string name="city_kokand">Qoʻqon</string>
+    <string name="city_termez">Termiz</string>
+    <string name="city_nukus">Nukus</string>
+    <string name="city_surkhandarya">Surxondaryo</string>
+    <string name="city_namangan">Namangan</string>
+    <string name="city_fergana">Fargʻona</string>
+    <string name="cat_mosque">Masjid</string>
+    <string name="cat_museum">Muzey</string>
+    <string name="cat_fortress">Qal’a</string>
+    <string name="cat_madrasah">Madrasa</string>
+    <string name="cat_resort">Dam olish maskani</string>
+
+    <!-- SAMARKAND -->
+    <string name="place_registan_square">Registon maydoni</string>
+    <string name="place_gur_e_amir_mausoleum">Goʻri Amir maqbarasi</string>
+    <string name="place_shah_i_zinda">Shohi Zinda majmuasi</string>
+    <string name="place_bibi_khanym_mosque">BibiXonim masjidi</string>
+    <string name="place_ulugbek_observatory">Ulugʻbek rasadxonasi</string>
+    <string name="place_saint_daniel_mausoleum">Xoja Doniyor maqbarasi</string>
+    <string name="place_afrasiyab_museum">Afrosiyob muzeyi</string>
+    <string name="place_imam_al_bukhari_complex">Imom al-Buxoriy majmuasi</string>
+
+    <!-- BUKHARA -->
+    <string name="place_ark_of_bukhara">Buxoro Arki</string>
+    <string name="place_po_i_kalyan_complex">Poyi Kalon majmuasi</string>
+    <string name="place_samanid_mausoleum">Somoniylar maqbarasi</string>
+    <string name="place_chashma_ayub_mausoleum">Chashmai Ayub maqbarasi</string>
+    <string name="place_lyabi_hauz_ensemble">Labihovuz ansambli</string>
+    <string name="place_sitorai_mohi_khosa">Sitorai Mohi Xosa saroyi</string>
+    <string name="place_chor_bakr_necropolis">Chor Bakr daxmasi</string>
+    <string name="place_naqshbandi_memorial">Bahouddin Naqshband majmuasi</string>
+    <string name="place_magok_i_attari_mosque">Magʻoki Attori masjidi</string>
+    <string name="place_chor_minor_madrasah">Chor Minor madrasasi</string>
+
+    <!-- KHIVA -->
+    <string name="place_juma_mosque">Juma masjidi</string>
+    <string name="place_pahlavon_mahmud_mausoleum">Pahlavon Mahmud maqbarasi</string>
+    <string name="place_islam_khoja_minaret">Islom Xoʻja minorasi</string>
+    <string name="place_kalta_minor">Kalta Minor</string>
+    <string name="place_kunya_ark_citadel">Koʻhna Ark qalʼasi</string>
+    <string name="place_toshhovli_palace">Toshhovli saroyi</string>
+    <string name="place_muhammad_amin_khan_madrasah">Muhammad Aminxon madrasasi</string>
+
+    <!-- TASHKENT -->
+    <string name="place_islamic_civilization_center">Islom sivilizatsiyasi markazi</string>
+    <string name="place_hazrati_imam_complex">Hazrati Imom majmuasi</string>
+    <string name="place_kukeldash_madrasah">Koʻkaldosh madrasasi</string>
+    <string name="place_history_museum_of_uzbekistan">Oʻzbekiston tarixi davlat muzeyi</string>
+    <string name="place_amir_temur_museum">Amir Temur muzeyi</string>
+    <string name="place_applied_arts_museum">Amaliy sanʼat muzeyi</string>
+    <string name="place_independence_square">Mustaqillik maydoni</string>
+    <string name="place_tashkent_tv_tower">Toshkent teleminorasi</string>
+    <string name="place_new_uzbekistan_park">Yangi Oʻzbekiston bogʻi</string>
+
+    <!-- RESORTS & NATURE -->
+    <string name="place_amirsoy_mountain_resort">Amirsoy togʻ kurorti</string>
+    <string name="place_charvak_reservoir">Chorvoq suv ombori</string>
+    <string name="place_chimgan_mountains">Chimyot togʻlari</string>
+    <string name="place_zaamin_national_park">Zomin milliy bogʻi</string>
+    <string name="place_aydar_lake">Aydarkòl</string>
+    <string name="place_sangardak_waterfall">Sangardak sharsharasi</string>
+    <string name="place_arashan_lakes">Arashan koʻllari</string>
+    <string name="place_shohimardon_resort">Shohimardon kurorti</string>
+
+    <!-- OTHERS -->
+    <string name="place_ak_saray_palace">Oqsaroy saroyi</string>
+    <string name="place_hudayar_khan_palace">Xudoyorxon oʻrdasi</string>
+    <string name="place_sultan_saodat_ensemble">Sulton Saodat majmuasi</string>
+    <string name="place_savitsky_art_museum">Savitskiy muzeyi</string>
+
+    <!-- YandexMap -->
+    <string name="search_placeholder">Joylar yoki diqqatga sazovor joylarni qidirish...</string>
+    <string name="search_description">Qidiruv</string>
+    <string name="zoom_in_description">Yaqinlashtirish</string>
+    <string name="zoom_out_description">Uzoqlashtirish</string>
+    <string name="my_location_description">Mening joylashuvim</string>
+    <string name="route_error_message">Marshrutni yuklab boʻlmadi. Iltimos, internetni tekshiring.</string>
+    <string name="gps_warning_message">Iltimos, telefonda GPS (Joylashuv) xizmatini yoqing</string>
+    <string name="more_details_button">Batafsil maʼlumot</string>
+    <string name="transport">Transport</string>
+    <string name="cafes">Kafelar</string>
+    <string name="parks">Bog\'lar</string>
+    <string name="hotels">Mehmonxonalar</string>
+    <string name="location_permission_denied">Joylashuvingizni ko\'rsatish uchun ruxsat berishingiz kerak.</string>
+    <string name="error_loading_map">Xaritani yuklashda xatolik</string>
+    <string name="default_description">Tarixiy obidalar, %1$s shahrida joylashgan.</string>
+</resources>

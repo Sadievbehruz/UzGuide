@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">UzGuide</string>
+    <string name="no_destinations_found">No destinations found 😔</string>
+    <string name="saved_places_title">Saved Places</string>
+    <string name="no_saved_places">No saved places yet.</string>
+    <string name="get_directions">Get Directions</string>
+    <string name="about_title">About</string>
+    <string name="discover_uzbekistan">Discover Uzbekistan</string>
+    <string name="best_spots">Best spots for you</string>
+    <string name="all_destinations">All Destinations</string>
+    <string name="top_cities">Popular Cities of Uzbekistan</string>
+    <string name="home">Home</string>
+    <string name="hotel">Hotels</string>
+    <string name="map">Map</string>
+    <string name="market">Market</string>
+    <string name="more">More</string>
+    <string name="welcome_title">Welcome!</string>
+    <string name="sign_in_google">Sign in with Google</string>
+    <string name="welcome">Welcome!</string>
+    <string name="app_subtitle">Your guide to Uzbekistan</string>
+    <string name="loading">Loading...</string>
+    <string name="no_detail_info">Detailed information will be available soon.</string>
+    <string name="label_area">Area</string>
+    <string name="label_weather">Weather</string>
+    <string name="ticket_title">Ticket</string>
+    <string name="desc_not_available">Description not available.</string>
+    <string name="no_details_available">Detailed information will be available soon.</string>
+    <string name="not_applicable">N/A</string>
+    <string name="free_price">Free</string>
+    <string name="change_language">Change Language</string>
+
+    <string name="profile_settings">Profile Settings</string>
+    <string name="btn_save">Save</string>
+    <string name="btn_edit">Edit</string>
+    <string name="label_full_name">Full Name</string>
+
+    <string name="menu_vr_mode">VR Mode</string>
+    <string name="title_national_market">Uzbekistan National Market</string>
+    <string name="title_luxury_hotels">Discover Luxury Hotels</string>
+    <string name="coming_soon">COMING SOON</string>
+
+    <string name="filter_title">Filter Places</string>
+    <string name="filter_clear">Clear</string>
+    <string name="select_cities">Select Cities</string>
+    <string name="select_categories">Select Categories</string>
+    <string name="btn_apply">Apply Filters</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="city_tashkent">Tashkent</string>
+    <string name="city_samarkand">Samarkand</string>
+    <string name="city_bukhara">Bukhara</string>
+    <string name="city_khiva">Khiva</string>
+    <string name="city_jizzakh">Jizzakh</string>
+    <string name="city_bostanlyk">Bostanlyk</string>
+    <string name="city_shahrisabz">Shahrisabz</string>
+    <string name="city_kokand">Kokand</string>
+    <string name="city_termez">Termez</string>
+    <string name="city_nukus">Nukus</string>
+    <string name="city_surkhandarya">Surkhandarya</string>
+    <string name="city_namangan">Namangan</string>
+    <string name="city_fergana">Fergana</string>
+    <string name="cat_mosque">Mosque</string>
+    <string name="cat_museum">Museum</string>
+    <string name="cat_fortress">Fortress</string>
+    <string name="cat_madrasah">Madrasah</string>
+    <string name="cat_resort">Resort</string>
+
+    <!-- SAMARKAND -->
+    <string name="place_registan_square">Registan Square</string>
+    <string name="place_gur_e_amir_mausoleum">Gur-e-Amir Mausoleum</string>
+    <string name="place_shah_i_zinda">Shah-i-Zinda</string>
+    <string name="place_bibi_khanym_mosque">Bibi-Khanym Mosque</string>
+    <string name="place_ulugbek_observatory">Ulugbek Observatory</string>
+    <string name="place_saint_daniel_mausoleum">Saint Daniel Mausoleum</string>
+    <string name="place_afrasiyab_museum">Afrasiyab Museum</string>
+    <string name="place_imam_al_bukhari_complex">Imam Al-Bukhari Complex</string>
+
+    <!-- BUKHARA -->
+    <string name="place_ark_of_bukhara">Ark of Bukhara</string>
+    <string name="place_po_i_kalyan_complex">Po-i-Kalyan Complex</string>
+    <string name="place_samanid_mausoleum">Samanid Mausoleum</string>
+    <string name="place_chashma_ayub_mausoleum">Chashma-Ayub Mausoleum</string>
+    <string name="place_lyabi_hauz_ensemble">Lyabi-Hauz Ensemble</string>
+    <string name="place_sitorai_mohi_khosa">Sitorai Mohi-Khosa</string>
+    <string name="place_chor_bakr_necropolis">Chor-Bakr Necropolis</string>
+    <string name="place_naqshbandi_memorial">Naqshbandi Memorial</string>
+    <string name="place_magok_i_attari_mosque">Magok-i-Attari Mosque</string>
+    <string name="place_chor_minor_madrasah">Chor Minor Madrasah</string>
+
+    <!-- KHIVA -->
+    <string name="place_juma_mosque">Juma Mosque</string>
+    <string name="place_pahlavon_mahmud_mausoleum">Pahlavon Mahmud Mausoleum</string>
+    <string name="place_islam_khoja_minaret">Islam Khoja Minaret</string>
+    <string name="place_kalta_minor">Kalta Minor</string>
+    <string name="place_kunya_ark_citadel">Kunya-Ark Citadel</string>
+    <string name="place_toshhovli_palace">Toshhovli Palace</string>
+    <string name="place_muhammad_amin_khan_madrasah">Muhammad Amin-khan Madrasah</string>
+
+    <!-- TASHKENT -->
+    <string name="place_islamic_civilization_center">Islamic Civilization Center</string>
+    <string name="place_hazrati_imam_complex">Hazrati Imam Complex</string>
+    <string name="place_kukeldash_madrasah">Kukeldash Madrasah</string>
+    <string name="place_history_museum_of_uzbekistan">History Museum of Uzbekistan</string>
+    <string name="place_amir_temur_museum">Amir Temur Museum</string>
+    <string name="place_applied_arts_museum">Applied Arts Museum</string>
+    <string name="place_independence_square">Independence Square</string>
+    <string name="place_tashkent_tv_tower">Toshkent TV Tower</string>
+    <string name="place_new_uzbekistan_park">New Uzbekistan Park</string>
+
+    <!-- RESORTS & NATURE -->
+    <string name="place_amirsoy_mountain_resort">Amirsoy Mountain Resort</string>
+    <string name="place_charvak_reservoir">Charvak Reservoir</string>
+    <string name="place_chimgan_mountains">Chimgan Mountains</string>
+    <string name="place_zaamin_national_park">Zaamin National Park</string>
+    <string name="place_aydar_lake">Aydar Lake</string>
+    <string name="place_sangardak_waterfall">Sangardak Waterfall</string>
+    <string name="place_arashan_lakes">Arashan Lakes</string>
+    <string name="place_shohimardon_resort">Shohimardon Resort</string>
+
+    <!-- OTHERS -->
+    <string name="place_ak_saray_palace">Ak-Saray Palace</string>
+    <string name="place_hudayar_khan_palace">Khudayar Khan Palace</string>
+    <string name="place_sultan_saodat_ensemble">Sultan Saodat Ensemble</string>
+    <string name="place_savitsky_art_museum">Savitsky Art Museum</string>
+
+    <!-- YandexMap -->
+    <string name="search_placeholder">Search places or landmarks...</string>
+    <string name="search_description">Search</string>
+    <string name="zoom_in_description">Zoom In</string>
+    <string name="zoom_out_description">Zoom Out</string>
+    <string name="my_location_description">My Location</string>
+    <string name="route_error_message">Failed to load route. Please check internet.</string>
+    <string name="gps_warning_message">Please enable GPS (Location) service on your phone</string>
+    <string name="more_details_button">More Details</string>
+    <string name="transport">Transport</string>
+    <string name="cafes">Cafes</string>
+    <string name="parks">Parks</string>
+    <string name="hotels">Hotels</string>
+    <string name="location_permission_denied">Location permission is required to show your position.</string>
+    <string name="error_loading_map">Error loading map</string>
+    <string name="default_description">Historical landmark located in %1$s.</string>
+</resources>

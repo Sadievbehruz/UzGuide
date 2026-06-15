@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">UzGuide</string>
+    <string name="no_destinations_found">Места не найдены 😔</string>
+    <string name="saved_places_title">Сохраненные места</string>
+    <string name="no_saved_places">Пока нет сохраненных мест.</string>
+    <string name="get_directions">Проложить маршрут</string>
+    <string name="about_title">О месте</string>
+    <string name="discover_uzbekistan">Откройте Узбекистан</string>
+    <string name="best_spots">Лучшие места для вас</string>
+    <string name="all_destinations">Все направления</string>
+    <string name="top_cities">Популярные города Узбекистана</string>
+    <string name="home">Главная</string>
+    <string name="hotel">Отели</string>
+    <string name="map">Карта</string>
+    <string name="market">Маркет</string>
+    <string name="more">Ещё</string>
+    <string name="welcome_title">Добро пожаловать!</string>
+    <string name="sign_in_google">Войти через Google</string>
+    <string name="welcome">Добро пожаловать!</string>
+    <string name="app_subtitle">Ваш путеводитель по Узбекистану</string>
+    <string name="loading">Загрузка...</string>
+    <string name="no_detail_info">Подробная информация будет доступна в ближайшее время.</string>
+    <string name="label_area">Площадь</string>
+    <string name="label_weather">Погода</string>
+    <string name="ticket_title">Билет</string>
+    <string name="desc_not_available">Описание недоступно.</string>
+    <string name="no_details_available">Подробная информация будет доступна в ближайшее время.</string>
+    <string name="not_applicable">Н/Д</string>
+    <string name="free_price">Бесплатно</string>
+    <string name="change_language">Сменить язык</string>
+
+    <string name="profile_settings">Настройки профиля</string>
+    <string name="btn_save">Сохранить</string>
+    <string name="btn_edit">Изменить</string>
+    <string name="label_full_name">Полное имя</string>
+
+    <string name="menu_vr_mode">VR режим</string>
+    <string name="title_national_market">Национальный Маркет Узбекистана</string>
+    <string name="title_luxury_hotels">Роскошные отели</string>
+    <string name="coming_soon">СКОРО</string>
+
+    <string name="filter_title">Фильтр мест</string>
+    <string name="filter_clear">Очистить</string>
+    <string name="select_cities">Выберите города</string>
+    <string name="select_categories">Выберите категории</string>
+    <string name="btn_apply">Применить фильтр</string>
+    <string name="btn_cancel">Отмена</string>
+    <string name="city_tashkent">Ташкент</string>
+    <string name="city_samarkand">Самарканд</string>
+    <string name="city_bukhara">Бухара</string>
+    <string name="city_khiva">Хива</string>
+    <string name="city_jizzakh">Джизак</string>
+    <string name="city_bostanlyk">Бостанлык</string>
+    <string name="city_shahrisabz">Шахрисабз</string>
+    <string name="city_kokand">Коканд</string>
+    <string name="city_termez">Термез</string>
+    <string name="city_nukus">Нукус</string>
+    <string name="city_surkhandarya">Сурхандарья</string>
+    <string name="city_namangan">Наманган</string>
+    <string name="city_fergana">Фергана</string>
+    <string name="cat_mosque">Мечеть</string>
+    <string name="cat_museum">Музей</string>
+    <string name="cat_fortress">Крепость</string>
+    <string name="cat_madrasah">Медресе</string>
+    <string name="cat_resort">Зона отдыха</string>
+
+    <!-- SAMARKAND -->
+    <string name="place_registan_square">Площадь Регистан</string>
+    <string name="place_gur_e_amir_mausoleum">Мавзолей Гур-Эмир</string>
+    <string name="place_shah_i_zinda">Ансамбль Шахи-Зинда</string>
+    <string name="place_bibi_khanym_mosque">Мечеть Биби-Ханым</string>
+    <string name="place_ulugbek_observatory">Обсерватория Улугбека</string>
+    <string name="place_saint_daniel_mausoleum">Мавзолей Святого Данияра</string>
+    <string name="place_afrasiyab_museum">Музей Афрасиаб</string>
+    <string name="place_imam_al_bukhari_complex">Комплекс Имама Аль-Бухари</string>
+
+    <!-- BUKHARA -->
+    <string name="place_ark_of_bukhara">Цитадель Арк</string>
+    <string name="place_po_i_kalyan_complex">Комплекс По-и-Калян</string>
+    <string name="place_samanid_mausoleum">Мавзолей Саманидов</string>
+    <string name="place_chashma_ayub_mausoleum">Мавзолей Чашма-Аюб</string>
+    <string name="place_lyabi_hauz_ensemble">Ансамбль Ляби-Хауз</string>
+    <string name="place_sitorai_mohi_khosa">Ситораи Мохи-Хоса</string>
+    <string name="place_chor_bakr_necropolis">Некрополь Чор-Бакр</string>
+    <string name="place_naqshbandi_memorial">Мемориал Бахауддина Накшбанди</string>
+    <string name="place_magok_i_attari_mosque">Мечеть Магоки-Аттори</string>
+    <string name="place_chor_minor_madrasah">Медресе Чор-Минор</string>
+
+    <!-- KHIVA -->
+    <string name="place_juma_mosque">Джума-мечеть</string>
+    <string name="place_pahlavon_mahmud_mausoleum">Мавзолей Пахлавана Махмуда</string>
+    <string name="place_islam_khoja_minaret">Минарет Ислам-Ходжа</string>
+    <string name="place_kalta_minor">Калта-Минор</string>
+    <string name="place_kunya_ark_citadel">Цитадель Куня-Арк</string>
+    <string name="place_toshhovli_palace">Дворец Тош-Ховли</string>
+    <string name="place_muhammad_amin_khan_madrasah">Медресе Мухаммад Амин-хана</string>
+
+    <!-- TASHKENT -->
+    <string name="place_islamic_civilization_center">Центр исламской цивилизации</string>
+    <string name="place_hazrati_imam_complex">Комплекс Хазрати Имам</string>
+    <string name="place_kukeldash_madrasah">Медресе Кукельдаш</string>
+    <string name="place_history_museum_of_uzbekistan">Музей истории Узбекистана</string>
+    <string name="place_amir_temur_museum">Музей Амира Темура</string>
+    <string name="place_applied_arts_museum">Музей прикладного искусства</string>
+    <string name="place_independence_square">Площадь Независимости</string>
+    <string name="place_tashkent_tv_tower">Ташкентская телебашня</string>
+    <string name="place_new_uzbekistan_park">Парк Новый Узбекистан</string>
+
+    <!-- RESORTS & NATURE -->
+    <string name="place_amirsoy_mountain_resort">Горный курорт Амирсой</string>
+    <string name="place_charvak_reservoir">Чарвакское водохранилище</string>
+    <string name="place_chimgan_mountains">Горы Чимган</string>
+    <string name="place_zaamin_national_park">Зааминский национальный парк</string>
+    <string name="place_aydar_lake">Озеро Айдаркуль</string>
+    <string name="place_sangardak_waterfall">Водопад Сангардак</string>
+    <string name="place_arashan_lakes">Арашанские озера</string>
+    <string name="place_shohimardon_resort">Курорт Шахимардан</string>
+
+    <!-- OTHERS -->
+    <string name="place_ak_saray_palace">Дворец Ак-Сарай</string>
+    <string name="place_hudayar_khan_palace">Дворец Худояр-хана</string>
+    <string name="place_sultan_saodat_ensemble">Ансамбль Султан-Саодат</string>
+    <string name="place_savitsky_art_museum">Музей искусств им. Савицкого</string>
+
+    <!-- YandexMap -->
+    <string name="search_placeholder">Поиск мест или достопримечательностей...</string>
+    <string name="search_description">Поиск</string>
+    <string name="zoom_in_description">Приблизить</string>
+    <string name="zoom_out_description">Отдалить</string>
+    <string name="my_location_description">Мое местоположение</string>
+    <string name="route_error_message">Не удалось загрузить маршрут. Пожалуйста, проверьте интернет.</string>
+    <string name="gps_warning_message">Пожалуйста, включите службу GPS (местоположение) на телефоне</string>
+    <string name="more_details_button">Подробнее</string>
+    <string name="transport">Транспорт</string>
+    <string name="cafes">Кафе</string>
+    <string name="parks">Парки</string>
+    <string name="hotels">Отели</string>
+    <string name="location_permission_denied">Для отображения позиции требуется разрешение на геолокацию.</string>
+    <string name="error_loading_map">Ошибка загрузки карты</string>
+    <string name="default_description">Историческая достопримечательность, расположенная в г. %1$s.</string>
+</resources>
