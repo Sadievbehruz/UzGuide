@@ -3,8 +3,7 @@ package uz.uzguide
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -33,8 +32,10 @@ import androidx.compose.material.icons.filled.DirectionsRun
 import androidx.compose.material.icons.filled.ElectricScooter
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -50,8 +51,8 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -77,21 +78,15 @@ import com.yandex.mapkit.RequestPointType
 import com.yandex.mapkit.directions.DirectionsFactory
 import com.yandex.mapkit.directions.driving.DrivingOptions
 import com.yandex.mapkit.directions.driving.DrivingRoute
+import com.yandex.mapkit.directions.driving.DrivingRouterType
 import com.yandex.mapkit.directions.driving.DrivingSession
 import com.yandex.mapkit.directions.driving.VehicleOptions
 import com.yandex.mapkit.directions.driving.VehicleType
+import com.yandex.mapkit.geometry.Geo
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.CameraPosition
-import com.yandex.mapkit.map.MapObjectTapListener
 import com.yandex.mapkit.mapview.MapView
-import com.yandex.mapkit.transport.TransportFactory
-import com.yandex.mapkit.transport.masstransit.RouteOptions
-import com.yandex.mapkit.transport.masstransit.TransitOptions
 import com.yandex.runtime.Error
-import com.yandex.mapkit.transport.bicycle.Route as BicycleRoute
-import com.yandex.mapkit.transport.bicycle.Session as BicycleSession
-import com.yandex.mapkit.transport.masstransit.Route as MasstransitRoute
-import com.yandex.mapkit.transport.masstransit.Session as MasstransitSession
 
 enum class TransportMode { AUTOMOBILE, TRANSIT, PEDESTRIAN, MOPED_SCOOTER, BICYCLE_SAMOKAT }
 
@@ -101,21 +96,34 @@ fun YandexMapView(
     latitude: Double,
     longitude: Double,
     places: List<Place>,
+    selectedTargetPoint: Point?,
+    onRouteCleared: () -> Unit,
     onPlaceClick: (Place) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val mapView = remember { MapView(context) }
 
-    val drivingRouter = remember { com.yandex.mapkit.directions.DirectionsFactory.getInstance().createDrivingRouter(com.yandex.mapkit.directions.driving.DrivingRouterType.COMBINED) }
-    val masstransitRouter = remember { com.yandex.mapkit.transport.TransportFactory.getInstance().createMasstransitRouter() }
-    val bicycleRouter = remember { com.yandex.mapkit.transport.TransportFactory.getInstance().createBicycleRouter() }
-
     var userLocation by remember { mutableStateOf<Point?>(null) }
     var searchQuery by remember { mutableStateOf("") }
     var isSuggestionSelected by remember { mutableStateOf(false) }
 
-    var currentVisiblePlaces by remember { mutableStateOf(places) }
+    val currentVisiblePlaces by remember(searchQuery, places) {
+        derivedStateOf {
+            if (searchQuery.isEmpty() || isSuggestionSelected) {
+                places
+            } else {
+                places.filter { place ->
+                    // Telefon qaysi tilda bo'lsa, o'sha tildagi nomini olamiz
+                    val placeName = context.getString(place.nameResId)
+                    // Katta-kichik harflarni farqlamasdan (lowercase) qidiramiz
+                    placeName.contains(searchQuery, ignoreCase = true) ||
+                            place.city.contains(searchQuery, ignoreCase = true)
+                }
+            }
+        }
+    }
+
     var selectedPlaceForSheet by remember { mutableStateOf<Place?>(null) }
 
     var routeTargetPoint by remember { mutableStateOf<Point?>(null) }
@@ -125,101 +133,79 @@ fun YandexMapView(
     var showBottomSheet by remember { mutableStateOf(false) }
 
     var drivingSession by remember { mutableStateOf<DrivingSession?>(null) }
-    var masstransitSession by remember { mutableStateOf<MasstransitSession?>(null) }
-    var bicycleSession by remember { mutableStateOf<BicycleSession?>(null) }
+    var isNavigating by remember { mutableStateOf(false) }
 
-    fun getUserLocationInternal(ctx: Context, onLocationRetrieved: (Double, Double) -> Unit) {
-        if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            val locationManager = ctx.getSystemService(Context.LOCATION_SERVICE) as android.location.LocationManager
-            val networkLocation = locationManager.getLastKnownLocation(android.location.LocationManager.NETWORK_PROVIDER)
-            val gpsLocation = locationManager.getLastKnownLocation(android.location.LocationManager.GPS_PROVIDER)
-            val finalLocation = networkLocation ?: gpsLocation
+    var distanceValue by remember { mutableStateOf("") }
 
-            if (finalLocation != null) {
-                onLocationRetrieved(finalLocation.latitude, finalLocation.longitude)
+    // 1. MASOFANI HISOBLASH FUNKSIYASI (Ichkarida)
+    fun calculateAndFormatDistance(start: Point?, end: Point?) {
+        if (start != null && end != null) {
+            val distanceInMeters = Geo.distance(start, end)
+            distanceValue = if (distanceInMeters >= 1000) {
+                String.format("%.1f km", distanceInMeters / 1000)
             } else {
-                locationManager.requestSingleUpdate(
-                    android.location.LocationManager.NETWORK_PROVIDER,
-                    object : android.location.LocationListener {
-                        override fun onLocationChanged(loc: android.location.Location) {
-                            onLocationRetrieved(loc.latitude, loc.longitude)
-                        }
-                    },
+                "${distanceInMeters.toInt()} m"
+            }
+        } else {
+            distanceValue = ""
+        }
+    }
+
+    // 2. NAVIGATSIYANI BOSHLASH FUNKSIYASI (Ichkariga ko'chirildi)
+    fun startInAppNavigation(mView: MapView, location: Point?) {
+        if (location == null) return
+        val map = mView.mapWindow?.map ?: return
+        map.move(
+            CameraPosition(location, 17.5f, map.cameraPosition.azimuth, 45.0f),
+            Animation(Animation.Type.SMOOTH, 1.0f),
+            null
+        )
+    }
+
+    LaunchedEffect(selectedTargetPoint) {
+        if (selectedTargetPoint != null) {
+            routeTargetPoint = selectedTargetPoint
+        }
+    }
+
+    LaunchedEffect(latitude, longitude, isNavigating, routeTargetPoint) {
+        val currentPoint = Point(latitude, longitude)
+        userLocation = currentPoint
+
+        calculateAndFormatDistance(currentPoint, routeTargetPoint)
+
+        val map = mapView.mapWindow?.map
+        if (map != null) {
+            if (isNavigating) {
+                map.move(
+                    CameraPosition(currentPoint, 17.5f, map.cameraPosition.azimuth, 45.0f),
+                    Animation(Animation.Type.SMOOTH, 0.5f),
+                    null
+                )
+            } else if (searchQuery.isEmpty()) {
+                map.move(
+                    CameraPosition(currentPoint, 14.5f, 0.0f, 0.0f),
+                    Animation(Animation.Type.SMOOTH, 1.0f),
                     null
                 )
             }
         }
     }
 
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true) {
-            getUserLocationInternal(context) { lat, lon ->
-                userLocation = Point(lat, lon)
+    fun getUserLocationInternal(ctx: Context, onLocationRetrieved: (Double, Double) -> Unit) {
+        if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            val locationManager = ctx.getSystemService(Context.LOCATION_SERVICE) as android.location.LocationManager
+            val networkLocation = locationManager.getLastKnownLocation(android.location.LocationManager.NETWORK_PROVIDER)
+            val gpsLocation = locationManager.getLastKnownLocation(android.location.LocationManager.GPS_PROVIDER)
+            val finalLocation = gpsLocation ?: networkLocation
+
+            if (finalLocation != null) {
+                onLocationRetrieved(finalLocation.latitude, finalLocation.longitude)
             }
         }
     }
 
-    LaunchedEffect(Unit) {
-        permissionLauncher.launch(arrayOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        ))
-    }
-
-    LaunchedEffect(searchQuery, places) {
-        val filtered = if (searchQuery.isBlank()) {
-            places
-        } else {
-            places.filter { place ->
-                val resourceName = "place_" + place.id.lowercase()
-                    .replace(" ", "_")
-                    .replace("-", "_")
-                    .replace("'", "")
-
-                val resId = context.resources.getIdentifier(resourceName, "string", context.packageName)
-                val localizedName = if (resId != 0) context.getString(resId) else place.id
-
-                localizedName.contains(searchQuery, ignoreCase = true) ||
-                        place.id.contains(searchQuery, ignoreCase = true) ||
-                        place.city.contains(searchQuery, ignoreCase = true)
-            }
-        }
-
-        currentVisiblePlaces = filtered
-
-        val mapObjects = mapView.mapWindow?.map?.mapObjects ?: return@LaunchedEffect
-        mapObjects.clear()
-
-        filtered.forEach { place ->
-            val placePoint = Point(place.latitude, place.longitude)
-            val placemark = mapObjects.addPlacemark()
-            placemark.geometry = placePoint
-
-            placemark.addTapListener(object : MapObjectTapListener {
-                override fun onMapObjectTap(mapObject: com.yandex.mapkit.map.MapObject, point: Point): Boolean {
-                    selectedPlaceForSheet = place
-                    routeTargetPoint = placePoint
-                    showBottomSheet = true
-                    return true
-                }
-            })
-        }
-
-        if (filtered.size == 1) {
-            val targetPlace = filtered.first()
-            val point = Point(targetPlace.latitude, targetPlace.longitude)
-            routeTargetPoint = point
-            mapView.mapWindow?.map?.move(
-                CameraPosition(point, 15.5f, 0.0f, 0.0f),
-                Animation(Animation.Type.SMOOTH, 1.2f),
-                null
-            )
-        }
-    }
-
-    LaunchedEffect(userLocation, routeTargetPoint, selectedTransportMode) {
+    LaunchedEffect(userLocation, routeTargetPoint, selectedTransportMode, currentVisiblePlaces) {
         val startPoint = userLocation
         val endPoint = routeTargetPoint
 
@@ -233,10 +219,7 @@ fun YandexMapView(
                 RequestPoint(endPoint, RequestPointType.WAYPOINT, null, null)
             )
 
-            drivingSession?.cancel()
-            masstransitSession?.cancel()
-            bicycleSession?.cancel()
-
+            try { drivingSession?.cancel() } catch (e: Exception) {}
             mapObjects.clear()
 
             currentVisiblePlaces.forEach { p ->
@@ -249,104 +232,34 @@ fun YandexMapView(
                     true
                 }
             }
-            mapObjects.addPlacemark().geometry = startPoint
 
             try {
-                when (selectedTransportMode) {
-                    TransportMode.AUTOMOBILE -> {
-                        val drivingRouter = DirectionsFactory.getInstance().createDrivingRouter(com.yandex.mapkit.directions.driving.DrivingRouterType.COMBINED)
-                        val options = DrivingOptions()
-                        val vehicleOptions = VehicleOptions().apply { vehicleType = VehicleType.DEFAULT }
-
-                        drivingSession = drivingRouter.requestRoutes(points, options, vehicleOptions, object : DrivingSession.DrivingRouteListener {
-                            override fun onDrivingRoutes(routes: List<DrivingRoute>) {
-                                if (routes.isNotEmpty() && mapView.mapWindow != null) {
-                                    mapObjects.addPolyline(routes[0].geometry).apply {
-                                        setStrokeColor(Color(0xFF2196F3).toArgb())
-                                        strokeWidth = 6f
-                                    }
-                                }
-                            }
-                            override fun onDrivingRoutesError(p0: Error) {}
-                        })
-                    }
-                    TransportMode.MOPED_SCOOTER -> {
-                        val drivingRouter = DirectionsFactory.getInstance().createDrivingRouter(com.yandex.mapkit.directions.driving.DrivingRouterType.COMBINED)
-                        val options = DrivingOptions()
-                        val vehicleOptions = VehicleOptions().apply { vehicleType = VehicleType.DEFAULT }
-
-                        drivingSession = drivingRouter.requestRoutes(points, options, vehicleOptions, object : DrivingSession.DrivingRouteListener {
-                            override fun onDrivingRoutes(routes: List<DrivingRoute>) {
-                                if (routes.isNotEmpty() && mapView.mapWindow != null) {
-                                    mapObjects.addPolyline(routes[0].geometry).apply {
-                                        setStrokeColor(Color(0xFFE91E63).toArgb())
-                                        strokeWidth = 5.5f
-                                    }
-                                }
-                            }
-                            override fun onDrivingRoutesError(p0: Error) {}
-                        })
-                    }
-                    TransportMode.PEDESTRIAN -> {
-                        val masstransitRouter = TransportFactory.getInstance().createMasstransitRouter()
-                        masstransitSession = masstransitRouter.requestRoutes(points, TransitOptions(), RouteOptions(), object : MasstransitSession.RouteListener {
-                            override fun onMasstransitRoutes(routes: List<MasstransitRoute>) {
-                                if (routes.isNotEmpty() && mapView.mapWindow != null) {
-                                    mapObjects.addPolyline(routes[0].geometry).apply {
-                                        setStrokeColor(Color(0xFF4CAF50).toArgb())
-                                        strokeWidth = 5f
-                                    }
-                                }
-                            }
-                            override fun onMasstransitRoutesError(p0: Error) {}
-                        })
-                    }
-                    TransportMode.TRANSIT -> {
-                        val masstransitRouter = TransportFactory.getInstance().createMasstransitRouter()
-                        masstransitSession = masstransitRouter.requestRoutes(points, TransitOptions(), RouteOptions(), object : MasstransitSession.RouteListener {
-                            override fun onMasstransitRoutes(routes: List<MasstransitRoute>) {
-                                if (routes.isNotEmpty() && mapView.mapWindow != null) {
-                                    mapObjects.addPolyline(routes[0].geometry).apply {
-                                        setStrokeColor(Color(0xFF9C27B0).toArgb())
-                                        strokeWidth = 5.5f
-                                    }
-                                }
-                            }
-                            override fun onMasstransitRoutesError(p0: Error) {}
-                        })
-                    }
-                    TransportMode.BICYCLE_SAMOKAT -> {
-                        val bicycleRouter = TransportFactory.getInstance().createBicycleRouter()
-                        bicycleSession = bicycleRouter.requestRoutes(
-                            points,
-                            com.yandex.mapkit.transport.bicycle.VehicleType.BICYCLE,
-                            object : BicycleSession.RouteListener {
-                                override fun onBicycleRoutes(routes: List<BicycleRoute>) {
-                                    if (routes.isNotEmpty() && mapView.mapWindow != null) {
-                                        mapObjects.addPolyline(routes[0].geometry).apply {
-                                            setStrokeColor(Color(0xFFFF9800).toArgb())
-                                            strokeWidth = 5f
-                                        }
-                                    }
-                                }
-                                override fun onBicycleRoutesError(p0: Error) {}
-                            }
-                        )
+                val drivingRouter = DirectionsFactory.getInstance().createDrivingRouter(DrivingRouterType.COMBINED)
+                val color = when (selectedTransportMode) {
+                    TransportMode.AUTOMOBILE -> Color(0xFF2196F3)
+                    TransportMode.MOPED_SCOOTER -> Color(0xFFE91E63)
+                    TransportMode.BICYCLE_SAMOKAT -> Color(0xFFFF9800)
+                    TransportMode.PEDESTRIAN, TransportMode.TRANSIT -> {
+                        val alertMessage = context.getString(R.string.transit_not_available)
+                        Toast.makeText(context, alertMessage, Toast.LENGTH_SHORT).show()
+                        Color(0xFF4CAF50)
                     }
                 }
+
+                drivingSession = drivingRouter.requestRoutes(points, DrivingOptions(), VehicleOptions().apply { vehicleType = VehicleType.DEFAULT }, object : DrivingSession.DrivingRouteListener {
+                    override fun onDrivingRoutes(routes: List<DrivingRoute>) {
+                        if (routes.isNotEmpty() && mapView.mapWindow != null) {
+                            mapObjects.addPolyline(routes[0].geometry).apply {
+                                setStrokeColor(color.toArgb())
+                                strokeWidth = 6f
+                            }
+                        }
+                    }
+                    override fun onDrivingRoutesError(p0: Error) {}
+                })
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-        }
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            drivingSession?.cancel()
-            masstransitSession?.cancel()
-            bicycleSession?.cancel()
-            mapView.onStop()
-            MapKitFactory.getInstance().onStop()
         }
     }
 
@@ -355,9 +268,13 @@ fun YandexMapView(
             modifier = Modifier.fillMaxSize(),
             factory = { ctx ->
                 MapKitFactory.initialize(ctx)
+                val mapKit = MapKitFactory.getInstance()
+                val userLocationLayer = mapKit.createUserLocationLayer(mapView.mapWindow)
+                userLocationLayer.isVisible = true
+                userLocationLayer.isHeadingEnabled = true
+
                 mapView.onStart()
-                MapKitFactory.getInstance().onStart()
-                mapView.mapWindow?.map?.move(CameraPosition(Point(latitude, longitude), 13.0f, 0.0f, 0.0f))
+                mapKit.onStart()
                 mapView
             }
         )
@@ -368,39 +285,45 @@ fun YandexMapView(
                 .padding(horizontal = 16.dp, vertical = 45.dp)
                 .align(Alignment.TopCenter)
         ) {
-            TextField(
-                value = searchQuery,
-                onValueChange = {
-                    searchQuery = it
-                    isSuggestionSelected = false
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.White, RoundedCornerShape(12.dp)),
-                placeholder = { Text(stringResource(id = R.string.search_placeholder)) },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                trailingIcon = {
-                    if (searchQuery.isNotEmpty() || routeTargetPoint != null) {
-                        IconButton(onClick = {
-                            searchQuery = ""
-                            routeTargetPoint = null
-                            isSuggestionSelected = false
-                            mapView.mapWindow?.map?.mapObjects?.clear()
-                        }) {
-                            Icon(Icons.Default.Close, contentDescription = "Tozalash")
+            if (!isNavigating) {
+                TextField(
+                    value = searchQuery,
+                    onValueChange = {
+                        searchQuery = it
+                        isSuggestionSelected = false
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White, RoundedCornerShape(12.dp)),
+                    placeholder = { Text(stringResource(id = R.string.search_placeholder)) },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty() || routeTargetPoint != null) {
+                            IconButton(onClick = {
+                                searchQuery = ""
+                                routeTargetPoint = null
+                                distanceValue = ""
+                                isSuggestionSelected = false
+                                mapView.mapWindow?.map?.mapObjects?.clear()
+                                onRouteCleared()
+                            }) {
+                                Icon(Icons.Default.Close, contentDescription = null)
+                            }
                         }
-                    }
-                },
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                ),
-                shape = RoundedCornerShape(12.dp)
-            )
+                    },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.White,    // Aktiv turgandagi fon oq
+                        unfocusedContainerColor = Color.White,  // Aktiv bo'lmagandagi fon oq
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                )
+            }
 
-            if (searchQuery.isNotEmpty() && !isSuggestionSelected && currentVisiblePlaces.isNotEmpty()) {
+            if (searchQuery.isNotEmpty() && !isSuggestionSelected && currentVisiblePlaces.isNotEmpty() && !isNavigating) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -414,7 +337,7 @@ fun YandexMapView(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        searchQuery = place.id
+                                        searchQuery = context.getString(place.nameResId)
                                         routeTargetPoint = Point(place.latitude, place.longitude)
                                         isSuggestionSelected = true
                                     }
@@ -424,7 +347,12 @@ fun YandexMapView(
                                 Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color(0xFF00695C), modifier = Modifier.size(20.dp))
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column {
-                                    Text(text = place.id, fontWeight = FontWeight.Medium, fontSize = 15.sp, color = Color.Black)
+                                    Text(
+                                        text = stringResource(id = place.nameResId),
+                                        fontWeight = FontWeight.Medium,
+                                        fontSize = 15.sp,
+                                        color = Color.Black
+                                    )
                                     Text(text = place.city, fontSize = 12.sp, color = Color.Gray)
                                 }
                             }
@@ -433,7 +361,7 @@ fun YandexMapView(
                 }
             }
 
-            if (routeTargetPoint != null) {
+            if (routeTargetPoint != null && !isNavigating) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -442,105 +370,146 @@ fun YandexMapView(
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(6.dp),
+                        modifier = Modifier.fillMaxWidth().padding(6.dp),
                         horizontalArrangement = Arrangement.SpaceAround,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        TransportIconButton(
-                            icon = Icons.Default.DirectionsCar,
-                            isSelected = selectedTransportMode == TransportMode.AUTOMOBILE,
-                            onClick = { selectedTransportMode = TransportMode.AUTOMOBILE }
-                        )
-                        TransportIconButton(
-                            icon = Icons.Default.DirectionsBus,
-                            isSelected = selectedTransportMode == TransportMode.TRANSIT,
-                            onClick = { selectedTransportMode = TransportMode.TRANSIT }
-                        )
-                        TransportIconButton(
-                            icon = Icons.Default.DirectionsRun,
-                            isSelected = selectedTransportMode == TransportMode.PEDESTRIAN,
-                            onClick = { selectedTransportMode = TransportMode.PEDESTRIAN }
-                        )
-                        TransportIconButton(
-                            icon = Icons.Default.ElectricScooter,
-                            isSelected = selectedTransportMode == TransportMode.MOPED_SCOOTER,
-                            onClick = { selectedTransportMode = TransportMode.MOPED_SCOOTER }
-                        )
-                        TransportIconButton(
-                            icon = Icons.Default.DirectionsBike,
-                            isSelected = selectedTransportMode == TransportMode.BICYCLE_SAMOKAT,
-                            onClick = { selectedTransportMode = TransportMode.BICYCLE_SAMOKAT }
-                        )
+                        TransportIconButton(icon = Icons.Default.DirectionsCar, isSelected = selectedTransportMode == TransportMode.AUTOMOBILE, onClick = { selectedTransportMode = TransportMode.AUTOMOBILE })
+                        TransportIconButton(icon = Icons.Default.DirectionsBus, isSelected = selectedTransportMode == TransportMode.TRANSIT, onClick = { selectedTransportMode = TransportMode.TRANSIT })
+                        TransportIconButton(icon = Icons.Default.DirectionsRun, isSelected = selectedTransportMode == TransportMode.PEDESTRIAN, onClick = { selectedTransportMode = TransportMode.PEDESTRIAN })
+                        TransportIconButton(icon = Icons.Default.ElectricScooter, isSelected = selectedTransportMode == TransportMode.MOPED_SCOOTER, onClick = { selectedTransportMode = TransportMode.MOPED_SCOOTER })
+                        TransportIconButton(icon = Icons.Default.DirectionsBike, isSelected = selectedTransportMode == TransportMode.BICYCLE_SAMOKAT, onClick = { selectedTransportMode = TransportMode.BICYCLE_SAMOKAT })
                     }
                 }
             }
         }
 
-        Column(
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .padding(end = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            FloatingActionButton(
-                onClick = {
-                    val pos = mapView.mapWindow?.map?.cameraPosition
-                    if (pos != null) {
-                        mapView.mapWindow?.map?.move(CameraPosition(pos.target, pos.zoom + 1.0f, pos.azimuth, pos.tilt), Animation(Animation.Type.SMOOTH, 0.2f), null)
-                    }
-                },
-                containerColor = Color.White,
-                contentColor = Color(0xFF00695C),
-                modifier = Modifier.size(45.dp)
-            ) { Icon(Icons.Default.Add, contentDescription = null) }
+        if (!isNavigating) {
+            Column(
+                modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FloatingActionButton(
+                    onClick = {
+                        val pos = mapView.mapWindow?.map?.cameraPosition
+                        if (pos != null) {
+                            mapView.mapWindow?.map?.move(CameraPosition(pos.target, pos.zoom + 1.0f, pos.azimuth, pos.tilt), Animation(Animation.Type.SMOOTH, 0.2f), null)
+                        }
+                    },
+                    containerColor = Color.White,
+                    contentColor = Color(0xFF00695C),
+                    modifier = Modifier.size(45.dp)
+                ) { Icon(Icons.Default.Add, contentDescription = null) }
 
-            FloatingActionButton(
-                onClick = {
-                    val pos = mapView.mapWindow?.map?.cameraPosition
-                    if (pos != null) {
-                        mapView.mapWindow?.map?.move(CameraPosition(pos.target, pos.zoom - 1.0f, pos.azimuth, pos.tilt), Animation(Animation.Type.SMOOTH, 0.2f), null)
-                    }
-                },
-                containerColor = Color.White,
-                contentColor = Color(0xFF00695C),
-                modifier = Modifier.size(45.dp)
-            ) { Icon(Icons.Default.Remove, contentDescription = null) }
+                FloatingActionButton(
+                    onClick = {
+                        val pos = mapView.mapWindow?.map?.cameraPosition
+                        if (pos != null) {
+                            mapView.mapWindow?.map?.move(CameraPosition(pos.target, pos.zoom - 1.0f, pos.azimuth, pos.tilt), Animation(Animation.Type.SMOOTH, 0.2f), null)
+                        }
+                    },
+                    containerColor = Color.White,
+                    contentColor = Color(0xFF00695C),
+                    modifier = Modifier.size(45.dp)
+                ) { Icon(Icons.Default.Remove, contentDescription = null) }
+            }
         }
 
-        FloatingActionButton(
-            onClick = {
-                getUserLocationInternal(context) { lat, lon ->
-                    userLocation = Point(lat, lon)
-                }
-            },
-            modifier = Modifier
-                .padding(bottom = 32.dp, end = 16.dp)
-                .align(Alignment.BottomEnd),
-            containerColor = Color(0xFF00695C),
-            contentColor = Color.White
-        ) { Icon(Icons.Default.MyLocation, contentDescription = null) }
+        if (!isNavigating) {
+            FloatingActionButton(
+                onClick = {
+                    getUserLocationInternal(context) { lat, lon ->
+                        userLocation = Point(lat, lon)
+                        mapView.mapWindow?.map?.move(CameraPosition(Point(lat, lon), 15.0f, 0.0f, 0.0f), Animation(Animation.Type.SMOOTH, 0.8f), null)
+                    }
+                },
+                modifier = Modifier.padding(bottom = 100.dp, end = 16.dp).align(Alignment.BottomEnd),
+                containerColor = Color(0xFF00695C),
+                contentColor = Color.White
+            ) { Icon(Icons.Default.MyLocation, contentDescription = null) }
+        }
 
-        if (showBottomSheet && selectedPlaceForSheet != null) {
+        if (routeTargetPoint != null) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp, start = 24.dp, end = 24.dp)
+                    .align(Alignment.BottomCenter),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                if (distanceValue.isNotEmpty()) {
+                    Card(
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF00695C)),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(Icons.Default.TrendingUp, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                            Text(
+                                text = stringResource(id = R.string.distance_label, distanceValue),
+                                color = Color.White,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+
+                if (!isNavigating) {
+                    Button(
+                        onClick = {
+                            isNavigating = true
+                            startInAppNavigation(mapView, userLocation)
+                            val startText = context.getString(R.string.navigation_started)
+                            Toast.makeText(context, startText, Toast.LENGTH_SHORT).show()
+                        },
+                        modifier = Modifier.fillMaxWidth().height(54.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0F3D39)),
+                        shape = RoundedCornerShape(14.dp),
+                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
+                    ) {
+                        Icon(Icons.Default.Navigation, contentDescription = null, tint = Color.White)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = stringResource(id = R.string.start_navigation), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    }
+                } else {
+                    Button(
+                        onClick = {
+                            isNavigating = false
+                            routeTargetPoint = null
+                            distanceValue = ""
+                            mapView.mapWindow?.map?.mapObjects?.clear()
+                            onRouteCleared()
+                        },
+                        modifier = Modifier.fillMaxWidth().height(54.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                        shape = RoundedCornerShape(14.dp)
+                    ) {
+                        Icon(Icons.Default.Navigation, contentDescription = null, tint = Color.White)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = stringResource(id = R.string.end_navigation), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    }
+                }
+            }
+        }
+
+        if (showBottomSheet && selectedPlaceForSheet != null && !isNavigating) {
             ModalBottomSheet(
                 onDismissRequest = { showBottomSheet = false },
                 sheetState = sheetState,
                 containerColor = Color.White
             ) {
                 val place = selectedPlaceForSheet!!
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 48.dp, start = 24.dp, end = 24.dp)
-                ) {
+                Column(modifier = Modifier.fillMaxWidth().padding(bottom = 48.dp, start = 24.dp, end = 24.dp)) {
                     Image(
                         painter = painterResource(id = place.imageRes),
                         contentDescription = place.id,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(180.dp)
-                            .clip(RoundedCornerShape(12.dp)),
+                        modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(12.dp)),
                         contentScale = ContentScale.Crop
                     )
                     Spacer(modifier = Modifier.height(16.dp))
@@ -569,9 +538,7 @@ fun TransportIconButton(
     onClick: () -> Unit
 ) {
     IconButton(
-        onClick = {
-            onClick()
-        },
+        onClick = { onClick() },
         modifier = Modifier
             .background(
                 color = if (isSelected) Color(0xFF00695C) else Color.Transparent,

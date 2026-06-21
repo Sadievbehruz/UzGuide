@@ -5,7 +5,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -226,6 +225,7 @@ fun getLocalizedPlaceName(englishName: String): String {
     return if (resId != 0) androidx.compose.ui.res.stringResource(id = resId) else englishName
 }
 
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val locales = AppCompatDelegate.getApplicationLocales()
@@ -234,7 +234,6 @@ class MainActivity : ComponentActivity() {
         }
         super.onCreate(savedInstanceState)
         val currentLang = AppCompatDelegate.getApplicationLocales()[0]?.language
-        Log.d("LanguageTest", "Hozirgi til: $currentLang")
 
         enableEdgeToEdge()
 
@@ -242,23 +241,37 @@ class MainActivity : ComponentActivity() {
             UzGuideTheme {
                 val context = LocalContext.current
                 val sharedPreferences = remember { context.getSharedPreferences("UzGuidePrefs", Context.MODE_PRIVATE) }
-                var isLanguageSelected by remember { mutableStateOf(sharedPreferences.getBoolean("lang_selected", false)) }
                 var currentScreen by remember { mutableStateOf("home") }
                 var selectedPlace by remember { mutableStateOf<Place?>(null) }
+                var userLocation by remember { mutableStateOf<android.location.Location?>(null) }
 
                 val savedPlaceNames = remember {
                     val savedSet = sharedPreferences.getStringSet("saved_places", emptySet()) ?: emptySet()
                     mutableStateListOf<String>().apply { addAll(savedSet) }
                 }
 
-                val onLanguageChange: () -> Unit = {
-                    isLanguageSelected = false
-                }
-
                 val auth = remember { FirebaseAuth.getInstance() }
                 var currentUser by remember { mutableStateOf(auth.currentUser) }
                 var isSplashFinished by remember { mutableStateOf(false) }
                 var selectedMapPoint by remember { mutableStateOf<com.yandex.mapkit.geometry.Point?>(null) }
+
+                LaunchedEffect(Unit) {
+                    if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                        getUserLocation(context) { lat, lon ->
+                            val loc = android.location.Location("GPS").apply {
+                                latitude = lat
+                                longitude = lon
+                            }
+                            userLocation = loc
+                        }
+                    } else {
+                        ActivityCompat.requestPermissions(
+                            context as Activity,
+                            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                            1001
+                        )
+                    }
+                }
 
                 val onSaveToggle: (Place) -> Unit = { place ->
                     val targetId = place.id
@@ -277,16 +290,6 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     when {
-                        !isLanguageSelected -> {
-                            LanguageSelectionScreen(onLanguageSelected = { lang ->
-                                val appLocale = LocaleListCompat.forLanguageTags(lang)
-                                AppCompatDelegate.setApplicationLocales(appLocale)
-
-                                sharedPreferences.edit().putBoolean("lang_selected", true).apply()
-
-                                (context as? android.app.Activity)?.recreate()
-                            })
-                        }
 
                         !isSplashFinished -> {
                             SplashScreen(onFinished = { isSplashFinished = true })
@@ -338,6 +341,8 @@ class MainActivity : ComponentActivity() {
                                                 val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
                                                 PlaceDetailScreen(
                                                     place = selectedPlace!!,
+                                                    userLat = userLocation?.latitude ?: 41.3111, // Agar null bo'lsa standart Toshkent
+                                                    userLon = userLocation?.longitude ?: 69.2401,
                                                     onBackClick = {
                                                         focusManager.clearFocus()
                                                         selectedPlace = null
@@ -348,7 +353,6 @@ class MainActivity : ComponentActivity() {
                                                     onGetDirections = { latitude, longitude ->
                                                         focusManager.clearFocus()
                                                         selectedMapPoint = com.yandex.mapkit.geometry.Point(latitude, longitude)
-                                                        selectedPlace = null
                                                         currentScreen = "map"
                                                     }
                                                 )
@@ -379,14 +383,19 @@ class MainActivity : ComponentActivity() {
                                             }
                                         }
 
-                                        "map" -> MapScreen(
-                                            targetPoint = selectedMapPoint,
-                                            placesList = allPlaces,
-                                            onPlaceSelect = { place ->
-                                                selectedPlace = place
-                                                currentScreen = "detail"
-                                            }
-                                        )
+                                        "map" -> {
+                                            YandexMapView(
+                                                places = allPlaces,
+                                                latitude = userLocation?.latitude ?: 41.3111,
+                                                longitude = userLocation?.longitude ?: 69.2401,
+                                                selectedTargetPoint = selectedMapPoint,
+                                                onRouteCleared = { selectedMapPoint = null },
+                                                onPlaceClick = { place ->
+                                                    selectedPlace = place
+                                                    currentScreen = "detail"
+                                                }
+                                            )
+                                        }
 
                                         "saved" -> Box(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
                                             SavedScreenContent(
@@ -552,15 +561,14 @@ fun loadTextFromAssets(context: Context, placeBaseName: String): String {
 
 fun parseCombinedStyles(text: String): AnnotatedString {
     return buildAnnotatedString {
-        // Regex <b>...</b> yoki **...** qidiradi
         val pattern = Regex("<b>(.*?)</b>|\\*\\*(.*?)\\*\\*")
         var lastIndex = 0
 
         pattern.findAll(text).forEach { matchResult ->
             append(text.substring(lastIndex, matchResult.range.first))
 
-            val boldContent = matchResult.groupValues[1] // <b> ichidagisi
-            val italicContent = matchResult.groupValues[2] // ** ichidagisi
+            val boldContent = matchResult.groupValues[1]
+            val italicContent = matchResult.groupValues[2]
 
             if (boldContent.isNotEmpty()) {
                 withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
@@ -577,21 +585,6 @@ fun parseCombinedStyles(text: String): AnnotatedString {
         if (lastIndex < text.length) {
             append(text.substring(lastIndex))
         }
-    }
-}
-
-@Composable
-fun LanguageSelectionScreen(onLanguageSelected: (String) -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxSize().background(Color.White),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("Iltimos, tilni tanlang", fontSize = 20.sp)
-        Spacer(modifier = Modifier.height(20.dp))
-        Button(onClick = { onLanguageSelected("uz") }) { Text("O'zbekcha") }
-        Button(onClick = { onLanguageSelected("ru") }) { Text("Русский") }
-        Button(onClick = { onLanguageSelected("en") }) { Text("English") }
     }
 }
 
@@ -653,15 +646,25 @@ fun LoginScreen(onSignInSuccess: () -> Unit) {
             Text(
                 text = stringResource(id = R.string.welcome),
                 color = tealPrimary,
-                fontSize = 48.sp,
+                fontSize = 36.sp,
                 fontWeight = FontWeight.ExtraBold
             )
 
-            Text(
-                text = stringResource(id = R.string.app_subtitle),
-                color = secondaryTextColor,
-                fontSize = 24.sp
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = stringResource(id = R.string.app_subtitle),
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    color = tealPrimary,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.ExtraBold
+                )
+            }
 
             Spacer(modifier = Modifier.weight(1f))
 
@@ -731,6 +734,8 @@ fun calculateDistanceKm(lat1: Double, lon1: Double, lat2: Double, lon2: Double):
 @Composable
 fun PlaceDetailScreen(
     place: Place,
+    userLat: Double = 41.311081,
+    userLon: Double = 69.240562,
     onBackClick: () -> Unit,
     onSaveToggle: (Place) -> Unit,
     isSaved: Boolean,
@@ -933,13 +938,16 @@ fun PlaceDetailScreen(
                 .padding(start = 14.dp, end = 14.dp, bottom = 4.dp, top = 4.dp)
         ) {
             Button(
-                 onClick = {
-                  onGetDirections(place.latitude, place.longitude)
-                 },
-                 modifier = Modifier.fillMaxWidth().padding(16.dp)
+                onClick = {
+                    onGetDirections(place.latitude, place.longitude)
+                },
+                modifier = Modifier.fillMaxWidth().padding(16.dp)
             ) {
-             Text(
-                 text = stringResource(id = R.string.get_directions))
+                Text(
+                    text = stringResource(id = R.string.get_directions),
+                    color = if (isDarkTheme) Color(0xFF0F3D39) else Color.White
+                )
+
             }
         }
     }
@@ -1165,7 +1173,7 @@ fun UzbekistanTravelScreenContent(
                             matchesCity && matchesCategory
                         }
 
-                       displayedPlaces = filteredList
+                        displayedPlaces = filteredList
                     }
                 )
             }
@@ -1181,7 +1189,7 @@ fun CityCard(
     isSaved: Boolean,
     onSaveClick: () -> Unit,
     onClick: () -> Unit,
-    ) {
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -1495,8 +1503,8 @@ fun SearchBarSection(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun FullScreenWidthImageCarousel(
-    places: List<Place>, // Endi Int emas, Place ob'ektlari ro'yxati
-    onPlaceClick: (Place) -> Unit // Click hodisasi uchun callback
+    places: List<Place>,
+    onPlaceClick: (Place) -> Unit
 ) {
     if (places.isEmpty()) return
 
@@ -1508,7 +1516,6 @@ fun FullScreenWidthImageCarousel(
         pageCount = { infinitePageCount }
     )
 
-    // Avtomatik aylantirish logikasi
     LaunchedEffect(Unit) {
         while (true) {
             delay(4000)
@@ -1530,14 +1537,12 @@ fun FullScreenWidthImageCarousel(
         pageSpacing = 4.dp,
         userScrollEnabled = true
     ) { page ->
-        // Hozirgi sahifaga mos joyni olish
         val place = places[page % places.size]
 
         Surface(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(vertical = 5.dp, horizontal = 5.dp)
-                // BOSILADIGAN QILISH
                 .clickable { onPlaceClick(place) },
             shape = RoundedCornerShape(15.dp),
             color = MaterialTheme.colorScheme.surface,
@@ -1546,7 +1551,7 @@ fun FullScreenWidthImageCarousel(
         ) {
             Image(
                 painter = painterResource(id = place.imageRes),
-                contentDescription = stringResource(id = place.nameResId), // Content description qo'shildi
+                contentDescription = stringResource(id = place.nameResId),
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
@@ -1593,7 +1598,7 @@ fun BottomNavigationBar(currentScreen: String, onNavigate: (String) -> Unit) {
             )
         }
 
-        val isMoreSelected = listOf("saved", "trips", "profile", "vr").contains(currentScreen)
+        val isMoreSelected = listOf("saved", "profile", "vr").contains(currentScreen)
 
         NavigationBarItem(
             selected = isMoreSelected || expanded,
@@ -1630,7 +1635,7 @@ fun BottomNavigationBar(currentScreen: String, onNavigate: (String) -> Unit) {
                         )
 
                         DropdownMenuItem(
-                            text = { Text("Saved") },
+                            text = { Text(stringResource(id = R.string.saved)) },
                             leadingIcon = {
                                 Icon(
                                     painter = painterResource(id = if(isDark) R.drawable.ic_saved_dark else R.drawable.ic_saved_light),
@@ -1648,7 +1653,7 @@ fun BottomNavigationBar(currentScreen: String, onNavigate: (String) -> Unit) {
                         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
                         DropdownMenuItem(
-                            text = { Text("Profile") },
+                            text = { Text(stringResource(id = R.string.profile)) },
                             leadingIcon = {
                                 Icon(
                                     painter = painterResource(id = if(isDark) R.drawable.ic_profile_dark else R.drawable.ic_profile_light),
@@ -1716,6 +1721,7 @@ fun YandexMapComponent(latitude: Double, longitude: Double) {
 fun MapScreen(
     targetPoint: com.yandex.mapkit.geometry.Point? = null,
     placesList: List<Place>,
+    onRouteCleared: () -> Unit = {},
     onPlaceSelect: (Place) -> Unit
 ) {
     val latitude = targetPoint?.latitude ?: 41.3111
@@ -1723,11 +1729,12 @@ fun MapScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         YandexMapView(
+            places = placesList,
             latitude = latitude,
             longitude = longitude,
-            places = placesList,
-            onPlaceClick = onPlaceSelect,
-            modifier = Modifier.fillMaxSize()
+            selectedTargetPoint = targetPoint,
+            onRouteCleared = onRouteCleared,
+            onPlaceClick = onPlaceSelect
         )
     }
 }
@@ -1772,7 +1779,7 @@ fun ProfileScreen(onBackClick: () -> Unit, onLoggedOut: () -> Unit, onLanguageCh
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = if (isDark) Color.White else Color.Black)
             }
             Text(
-                text = "Profile Settings",
+                text = stringResource(id = R.string.profile_settings),
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
@@ -1784,7 +1791,7 @@ fun ProfileScreen(onBackClick: () -> Unit, onLoggedOut: () -> Unit, onLanguageCh
                 }
                 isEditing = !isEditing
             }) {
-                Text(if (isEditing) "Save" else "Edit", color = Color(0xFF00695C), fontWeight = FontWeight.SemiBold)
+                Text(if (isEditing) stringResource(id = R.string.btn_save) else stringResource(id = R.string.btn_edit), color = Color(0xFF00695C), fontWeight = FontWeight.SemiBold)
             }
         }
 
@@ -1808,11 +1815,6 @@ fun ProfileScreen(onBackClick: () -> Unit, onLoggedOut: () -> Unit, onLanguageCh
             }
 
             Spacer(modifier = Modifier.height(32.dp))
-
-            Button(onClick = { onLanguageChange() }) {
-                Text(text = stringResource(id = R.string.change_language))
-            }
-
             Spacer(modifier = Modifier.weight(1f))
 
             Button(
@@ -1823,7 +1825,7 @@ fun ProfileScreen(onBackClick: () -> Unit, onLoggedOut: () -> Unit, onLanguageCh
             ) {
                 Icon(Icons.AutoMirrored.Filled.Logout, null, tint = Color.White)
                 Spacer(modifier = Modifier.width(10.dp))
-                Text("Sign Out", fontWeight = FontWeight.Bold, color = Color.White)
+                Text(text = stringResource(id = R.string.sign_out), fontWeight = FontWeight.Bold, color = Color.White)
             }
         }
     }

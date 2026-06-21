@@ -35,6 +35,9 @@
     <string name="btn_edit">Изменить</string>
     <string name="label_full_name">Полное имя</string>
 
+    <string name="sign_out">Выйти из профиля</string>
+    <string name="saved">Избранные</string>
+    <string name="profile">Профиль</string>
     <string name="menu_vr_mode">VR режим</string>
     <string name="title_national_market">Национальный Маркет Узбекистана</string>
     <string name="title_luxury_hotels">Роскошные отели</string>
@@ -139,4 +142,10 @@
     <string name="location_permission_denied">Для отображения позиции требуется разрешение на геолокацию.</string>
     <string name="error_loading_map">Ошибка загрузки карты</string>
     <string name="default_description">Историческая достопримечательность, расположенная в г. %1$s.</string>
+
+    <string name="start_navigation">Начать движение</string>
+    <string name="end_navigation">Завершить навигацию</string>
+    <string name="distance_label">Расстояние до пункта назначения: %s</string>
+    <string name="navigation_started">Навигация началась</string>
+    <string name="transit_not_available">Режимы общественного транспорта и пешехода будут доступны в ближайшее время</string>
 </resources>

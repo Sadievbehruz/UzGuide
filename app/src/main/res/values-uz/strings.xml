@@ -18,7 +18,7 @@
     <string name="welcome_title">Xush kelibsiz!</string>
     <string name="sign_in_google">Google orqali kirish</string>
     <string name="welcome">Xush kelibsiz!</string>
-    <string name="app_subtitle">Oʻzbekiston boʻylab sayohat yoʻlkoʻrsatkichi</string>
+    <string name="app_subtitle">Oʻzbekiston boʻylab biz bilan sayohat qiling.</string>
     <string name="loading">Yuklanmoqda...</string>
     <string name="no_detail_info">Batafsil ma’lumot tez orada joylashtiriladi.</string>
     <string name="label_area">Maydoni</string>
@@ -35,6 +35,9 @@
     <string name="btn_edit">Tahrirlash</string>
     <string name="label_full_name">Toʻliq ism-sharifingiz</string>
 
+    <string name="sign_out">Profildan chiqish</string>
+    <string name="saved">Sevimlilar</string>
+    <string name="profile">Profil</string>
     <string name="menu_vr_mode">VR rejimi</string>
     <string name="title_national_market">Oʻzbekiston milliy bozori</string>
     <string name="title_luxury_hotels">Hamyonbop va hashamatli mehmonxonalar</string>
@@ -124,7 +127,7 @@
     <string name="place_savitsky_art_museum">Savitskiy muzeyi</string>
 
     <!-- YandexMap -->
-    <string name="search_placeholder">Joylar yoki diqqatga sazovor joylarni qidirish...</string>
+    <string name="search_placeholder">Manzillarni qidirish...</string>
     <string name="search_description">Qidiruv</string>
     <string name="zoom_in_description">Yaqinlashtirish</string>
     <string name="zoom_out_description">Uzoqlashtirish</string>
@@ -139,4 +142,10 @@
     <string name="location_permission_denied">Joylashuvingizni ko\'rsatish uchun ruxsat berishingiz kerak.</string>
     <string name="error_loading_map">Xaritani yuklashda xatolik</string>
     <string name="default_description">Tarixiy obidalar, %1$s shahrida joylashgan.</string>
+
+    <string name="start_navigation">Harakatni boshlash</string>
+    <string name="end_navigation">Navigatsiyani yakunlash</string>
+    <string name="distance_label">Manzilgacha masofa: %s</string>
+    <string name="navigation_started">Navigatsiya boshlandi</string>
+    <string name="transit_not_available">Jamoat transporti va Piyoda rejimi tez kunda faollashadi</string>
 </resources>
