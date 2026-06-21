@@ -114,9 +114,7 @@ fun YandexMapView(
                 places
             } else {
                 places.filter { place ->
-                    // Telefon qaysi tilda bo'lsa, o'sha tildagi nomini olamiz
                     val placeName = context.getString(place.nameResId)
-                    // Katta-kichik harflarni farqlamasdan (lowercase) qidiramiz
                     placeName.contains(searchQuery, ignoreCase = true) ||
                             place.city.contains(searchQuery, ignoreCase = true)
                 }
@@ -137,7 +135,6 @@ fun YandexMapView(
 
     var distanceValue by remember { mutableStateOf("") }
 
-    // 1. MASOFANI HISOBLASH FUNKSIYASI (Ichkarida)
     fun calculateAndFormatDistance(start: Point?, end: Point?) {
         if (start != null && end != null) {
             val distanceInMeters = Geo.distance(start, end)
@@ -151,7 +148,6 @@ fun YandexMapView(
         }
     }
 
-    // 2. NAVIGATSIYANI BOSHLASH FUNKSIYASI (Ichkariga ko'chirildi)
     fun startInAppNavigation(mView: MapView, location: Point?) {
         if (location == null) return
         val map = mView.mapWindow?.map ?: return
@@ -312,8 +308,8 @@ fun YandexMapView(
                         }
                     },
                     colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.White,    // Aktiv turgandagi fon oq
-                        unfocusedContainerColor = Color.White,  // Aktiv bo'lmagandagi fon oq
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
                         focusedTextColor = Color.Black,
                         unfocusedTextColor = Color.Black,
                         focusedIndicatorColor = Color.Transparent,

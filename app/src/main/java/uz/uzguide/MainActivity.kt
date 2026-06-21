@@ -341,7 +341,7 @@ class MainActivity : ComponentActivity() {
                                                 val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
                                                 PlaceDetailScreen(
                                                     place = selectedPlace!!,
-                                                    userLat = userLocation?.latitude ?: 41.3111, // Agar null bo'lsa standart Toshkent
+                                                    userLat = userLocation?.latitude ?: 41.3111,
                                                     userLon = userLocation?.longitude ?: 69.2401,
                                                     onBackClick = {
                                                         focusManager.clearFocus()
